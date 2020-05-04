@@ -2,7 +2,10 @@ const { Rental, validate } = require('../models/rental');
 const { Movie } = require('../models/movie');
 const { Customer } = require('../models/customer');
 const express = require('express');
+const Fawn = require('fawn'); // for transactions in MongoDB
 const router = express.Router();
+
+Fawn.init(mongoose);
 
 router.get('/', async (req, res) => {
   const rentals = await Rental.find().sort('-dateOut');
@@ -35,34 +38,33 @@ router.post('/', async (req, res) => {
       // Date will have default value of current date (Date.now)
     },
   });
-  rental = await rental.save();
+  // rental = await rental.save();
 
-  movie.numberInStock--;
-  movie.save();
+  // movie.numberInStock--;
+  // movie.save();
 
-  res.send(rental);
-});
+  // We will be using the below transaction instead of above three lines to ensure
+  // that complete operation only takes place when all operations are performed.
+  try {
+    new Fawn.Task()
+      .save('rentals', rental)
+      .update(
+        'movies',
+        { _id: movies._id },
+        {
+          $inc: { numberInStock: -1 },
+        }
+      )
+      .run();
 
-router.put('/:id', async (req, res) => {
-  const { error } = validate(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-
-  const rental = await Rental.findByIdAndUpdate(
-    req.params.id,
-    {
-      name: req.body.name,
-    },
-    {
-      new: true,
-    }
-  );
-  if (!rental) return res.status(404).send('Rental with given id is not found');
-
-  res.send(rental);
+    res.send(rental);
+  } catch (ex) {
+    res.status(500).send('Something failed.');
+  }
 });
 
 router.get('/:id', async (req, res) => {
-  const rental = await Rental.findByIdAndDelete(req.params.id);
+  const rental = await Rental.findById(req.params.id);
 
   if (!rental) return res.status(404).send('Rental with given id is not found');
 
