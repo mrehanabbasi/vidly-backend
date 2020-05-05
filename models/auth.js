@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const Joi = require('@hapi/joi');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
-const { User } = require('../models/user');
+const { User } = require('./user');
 const express = require('express');
 const router = express.Router();
 
