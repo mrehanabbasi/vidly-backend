@@ -1,3 +1,4 @@
+const asyncMiddleware = require('../middleware/async');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 const { Movie, validate } = require('../models/movie');
@@ -5,42 +6,25 @@ const { Genre } = require('../models/genre');
 const express = require('express');
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-  const movies = await Movie.find().sort('name');
-  res.send(movies);
-});
+router.get(
+  '/',
+  asyncMiddleware(async (req, res) => {
+    const movies = await Movie.find().sort('name');
+    res.send(movies);
+  })
+);
 
-router.post('/', auth, async (req, res) => {
-  const { error } = validate(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+router.post(
+  '/',
+  auth,
+  asyncMiddleware(async (req, res) => {
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
 
-  const genre = await Genre.findById(req.body.genreId);
-  if (!genre) return res.status(400).send('Invalid genre.');
+    const genre = await Genre.findById(req.body.genreId);
+    if (!genre) return res.status(400).send('Invalid genre.');
 
-  const movie = new Movie({
-    title: req.body.title,
-    genre: {
-      _id: genre._id,
-      name: genre.name,
-    },
-    numberInStock: req.body.numberInStock,
-    dailyRentalRate: req.body.dailyRentalRate,
-  }); // id will be assigned automatically
-  await movie.save();
-
-  res.send(movie);
-});
-
-router.put('/:id', auth, async (req, res) => {
-  const { error } = validate(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-
-  const genre = await Genre.findById(req.body.genreId);
-  if (!genre) return res.status(400).send('Invalid genre.');
-
-  const movie = await Movie.findByIdAndUpdate(
-    req.params.id,
-    {
+    const movie = new Movie({
       title: req.body.title,
       genre: {
         _id: genre._id,
@@ -48,31 +32,69 @@ router.put('/:id', auth, async (req, res) => {
       },
       numberInStock: req.body.numberInStock,
       dailyRentalRate: req.body.dailyRentalRate,
-    },
-    {
-      new: true,
-    }
-  );
+    }); // id will be assigned automatically
+    await movie.save();
 
-  if (!movie) return res.status(404).send('Movie with given id is not found.');
+    res.send(movie);
+  })
+);
 
-  res.send(movie);
-});
+router.put(
+  '/:id',
+  auth,
+  asyncMiddleware(async (req, res) => {
+    const { error } = validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
 
-router.delete('/:id', [auth, admin], async (req, res) => {
-  const movie = await Movie.findByIdAndRemove(req.params.id);
+    const genre = await Genre.findById(req.body.genreId);
+    if (!genre) return res.status(400).send('Invalid genre.');
 
-  if (!movie) return res.status(404).send('Movie with given id is not found.');
+    const movie = await Movie.findByIdAndUpdate(
+      req.params.id,
+      {
+        title: req.body.title,
+        genre: {
+          _id: genre._id,
+          name: genre.name,
+        },
+        numberInStock: req.body.numberInStock,
+        dailyRentalRate: req.body.dailyRentalRate,
+      },
+      {
+        new: true,
+      }
+    );
 
-  res.send(movie);
-});
+    if (!movie)
+      return res.status(404).send('Movie with given id is not found.');
 
-router.get('/:id', async (req, res) => {
-  const movie = await Movie.findById(req.params.id);
+    res.send(movie);
+  })
+);
 
-  if (!movie) return res.status(404).send('Movie with given id is not found.');
+router.delete(
+  '/:id',
+  [auth, admin],
+  asyncMiddleware(async (req, res) => {
+    const movie = await Movie.findByIdAndRemove(req.params.id);
 
-  res.send(movie);
-});
+    if (!movie)
+      return res.status(404).send('Movie with given id is not found.');
+
+    res.send(movie);
+  })
+);
+
+router.get(
+  '/:id',
+  asyncMiddleware(async (req, res) => {
+    const movie = await Movie.findById(req.params.id);
+
+    if (!movie)
+      return res.status(404).send('Movie with given id is not found.');
+
+    res.send(movie);
+  })
+);
 
 module.exports = router;

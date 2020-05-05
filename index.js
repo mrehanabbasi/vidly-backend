@@ -1,3 +1,4 @@
+const error = require('./middleware/error');
 const config = require('config');
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi); // only added once here to be used anywhere else
@@ -31,6 +32,9 @@ app.use('/api/movies', movies);
 app.use('/api/rentals', rentals);
 app.use('/api/users', users);
 app.use('/api/auth', auth);
+
+// This error handling middleware function should be used after all middleware functions
+app.use(error);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
