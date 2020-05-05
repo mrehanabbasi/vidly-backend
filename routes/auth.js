@@ -1,3 +1,4 @@
+const config = require('config');
 const jwt = require('jsonwebtoken');
 const Joi = require('@hapi/joi');
 const bcrypt = require('bcrypt');
@@ -16,7 +17,7 @@ router.post('/', async (req, res) => {
   const validPassword = await bcrypt.compare(req.body.password, user.password);
   if (!validPassword) return res.status(400).send('Invalid email or password.');
 
-  const token = jwt.sign({ _id: user._id }, 'jwtPrivateKey'); // Hardcoding of private key is not recommended
+  const token = jwt.sign({ _id: user._id }, config.get('jwtPrivateKey')); // Getting private key from env var
   res.send(token);
 });
 

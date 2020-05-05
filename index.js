@@ -1,3 +1,4 @@
+const config = require('config');
 const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi); // only added once here to be used anywhere else
 const mongoose = require('mongoose');
@@ -9,6 +10,11 @@ const users = require('./routes/users');
 const auth = require('./routes/auth');
 const express = require('express');
 const app = express();
+
+if (!config.get('jwtPrivateKey')) {
+  console.error('FATAL ERROR!');
+  process.exit(1); // Exit with any value apart from 0 (zero)
+}
 
 mongoose
   .connect('mongodb://localhost/vidly', {
