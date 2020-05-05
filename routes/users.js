@@ -1,10 +1,17 @@
+const auth = require('../middleware/auth');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const { User, validate } = require('../models/user');
 const express = require('express');
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.get('/me', auth, async (req, res) => {
+  // Used 'me' for securoty reasons
+  const user = await User.findById(req.user._id).select('-password');
+  res.send(user);
+});
+
+router.post('/', [auth, admin], async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
@@ -16,7 +23,10 @@ router.post('/', async (req, res) => {
   user.password = await bcrypt.hash(user.password, salt);
   await user.save();
 
-  res.send(_.pick(user, ['_id', 'name', 'email'])); // Don't want to send password back to client
+  const token = user.generateAuthToken();
+  res
+    .header('x-auth-token', token) // customer http headers are always prefixed with x-
+    .send(_.pick(user, ['_id', 'name', 'email'])); // Don't want to send password back to client
 });
 
 module.exports = router;

@@ -1,3 +1,5 @@
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 const { Customer, validate } = require('../models/customer');
 const express = require('express');
 const router = express.Router();
@@ -7,7 +9,7 @@ router.get('/', async (req, res) => {
   res.send(customers);
 });
 
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
@@ -21,7 +23,7 @@ router.post('/', async (req, res) => {
   res.send(customer);
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
@@ -43,7 +45,7 @@ router.put('/:id', async (req, res) => {
   res.send(customer);
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', [auth, admin], async (req, res) => {
   const customer = await Customer.findByIdAndRemove(req.params.id);
 
   if (!customer)
