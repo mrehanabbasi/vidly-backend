@@ -12,8 +12,8 @@ router.post('/', async (req, res) => {
   if (user) return res.status(400).send('User already exists.');
 
   user = new User(_.pick(req.body, ['name', 'email', 'password']));
-  const salt = bcrypt.genSalt(10);
-  user.password = bcrypt.hash(user.password, salt);
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(user.password, salt);
   await user.save();
 
   res.send(_.pick(user, ['_id', 'name', 'email'])); // Don't want to send password back to client
