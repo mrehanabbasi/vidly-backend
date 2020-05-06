@@ -1,3 +1,4 @@
+const config = require('config');
 const winston = require('winston'); // for error logging. Default is enough for small/med apps
 require('winston-mongodb'); // MongoDB transport for winston
 require('express-async-errors'); // for error handling of express async errors for route handlers
@@ -21,8 +22,12 @@ module.exports = function () {
   winston.add(new winston.transports.File({ filename: 'logfile.log' }));
   winston.add(
     new winston.transports.MongoDB({
-      db: 'mongodb://localhost/vidly',
+      db: config.get('db'),
       level: 'info', // includes error, warn and info
+      options: {
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+      },
     })
   );
   winston.add(new winston.transports.Console());
