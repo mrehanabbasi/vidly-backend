@@ -9,6 +9,7 @@ module.exports = function () {
       useUnifiedTopology: true,
       useNewUrlParser: true,
       useCreateIndex: true,
+      useFindAndModify: false,
     })
     .then(() => winston.info(`Connected to ${db}...`));
 };
