@@ -17,6 +17,9 @@ require('./startup/config')();
 // User Input Data Validation
 require('./startup/validation')();
 
+// Production environment
+require('./startup/prod')(app); // can also be conditionally loaded for prod env
+
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () =>
   winston.info(`Listening on port ${port}...`)
