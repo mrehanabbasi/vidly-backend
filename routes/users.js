@@ -1,5 +1,4 @@
 const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const { User, validate } = require('../models/user');
@@ -12,7 +11,7 @@ router.get('/me', auth, async (req, res) => {
   res.send(user);
 });
 
-router.post('/', admin, async (req, res) => {
+router.post('/', async (req, res) => {
   const { error } = validate(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
